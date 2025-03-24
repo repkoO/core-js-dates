@@ -83,8 +83,20 @@ function getDayName(date) {
  * Date('2024-02-13T00:00:00Z') => Date('2024-02-16T00:00:00Z')
  * Date('2024-02-16T00:00:00Z') => Date('2024-02-23T00:00:00Z')
  */
-function getNextFriday(/* date */) {
-  throw new Error('Not implemented');
+function getNextFriday(date) {
+  const dayOfWeek = date.getDay();
+  let daysToAdd;
+  if (dayOfWeek <= 5) {
+    daysToAdd = (5 - dayOfWeek + 7) % 7;
+    if (daysToAdd === 0) {
+      daysToAdd = 7;
+    }
+  } else {
+    daysToAdd = 5 - dayOfWeek + 7;
+  }
+  const nextFriday = new Date(date);
+  nextFriday.setDate(date.getDate() + daysToAdd);
+  return nextFriday;
 }
 
 /**
@@ -289,8 +301,35 @@ function getQuarter(date) {
  * { start: '01-01-2024', end: '15-01-2024' }, 1, 3 => ['01-01-2024', '05-01-2024', '09-01-2024', '13-01-2024']
  * { start: '01-01-2024', end: '10-01-2024' }, 1, 1 => ['01-01-2024', '03-01-2024', '05-01-2024', '07-01-2024', '09-01-2024']
  */
-function getWorkSchedule(/* period, countWorkDays, countOffDays */) {
-  throw new Error('Not implemented');
+function getWorkSchedule(period, countWorkDays, countOffDays) {
+  const parseDate = (dateStr) => {
+    const [day, month, year] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  const formatDated = (date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const startDate = parseDate(period.start);
+  const endDate = parseDate(period.end);
+  const result = [];
+  const currentDate = new Date(startDate);
+  let cyclePosition = 0;
+
+  while (currentDate <= endDate) {
+    const currentCycleDay = cyclePosition % (countWorkDays + countOffDays);
+    if (currentCycleDay < countWorkDays) {
+      result.push(formatDated(new Date(currentDate)));
+    }
+    currentDate.setDate(currentDate.getDate() + 1);
+    cyclePosition += 1;
+  }
+
+  return result;
 }
 
 /**
